@@ -1,3 +1,4 @@
+//go:generate go run github.com/strangedev/hookah cmd/main.go github.com/strangedev/hookah/test Person > generated.go
 package test
 
 type Person struct {
