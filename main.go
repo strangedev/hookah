@@ -60,15 +60,27 @@ func main() {
 	f.ImportName("github.com/strangedev/hookah/pkg", "pkg")
 	f.ImportAlias("github.com/strangedev/hookah/pkg", "hookah")
 	f.Type().Id("Hooked" + sourceType).Struct(
-		jen.Op("*").Qual("github.com/strangedev/hookah/pkg", "Hookah").Index(jen.Id(sourceType)),
+		jen.Op("*").
+			Qual("github.com/strangedev/hookah/pkg", "Hookah").
+			Index(
+				jen.Id(sourceType),
+			),
 	)
 
 	f.Func().Id("NewHooked" + sourceType).Params(
-		jen.Id("original").Id(sourceType),
+		jen.Id("original").
+			Id(sourceType),
 	).List(
 		jen.Id("Hooked" + sourceType),
 	).Block(
-		jen.Return(jen.Id("Hooked" + sourceType).Values(jen.Qual("github.com/strangedev/hookah/pkg", "NewHookah").Call(jen.Id("original")))),
+		jen.Return(
+			jen.Id("Hooked" + sourceType).Values(
+				jen.Qual("github.com/strangedev/hookah/pkg", "NewHookah").
+					Call(
+						jen.Id("original"),
+					),
+			),
+		),
 	)
 
 	methodSet := types.NewMethodSet(obj.Type())
@@ -93,30 +105,54 @@ func main() {
 		methodImpl := method.Obj().(*types.Func)
 		signature := methodImpl.Type().Underlying().(*types.Signature)
 
-		generatedFunc := f.Func().Id("(h " + "Hooked" + sourceType + ")").Id(name)
+		generatedFunc := f.Func().
+			Id("(h " + "Hooked" + sourceType + ")").
+			Id(name)
 
 		params := make([]jen.Code, 0, signature.Params().Len())
 		paramNames := make([]jen.Code, 0, signature.Params().Len()+1)
 		paramNames = append(paramNames, jen.Lit(name))
 		for i := 0; i < signature.Params().Len(); i++ {
 			param := signature.Params().At(i)
-			params = append(params, jen.Id(param.Name()).Id(param.Type().String()))
+			params = append(
+				params,
+				jen.Id(param.Name()).
+					Id(param.Type().String()),
+			)
 			paramNames = append(paramNames, jen.Id(param.Name()))
 		}
 
 		returns := make([]jen.Code, 0, signature.Results().Len())
 		for i := 0; i < signature.Results().Len(); i++ {
 			returnDeclaration := signature.Results().At(i)
-			returns = append(returns, jen.Id(returnDeclaration.Name()).Id(returnDeclaration.Type().String()))
+			returns = append(
+				returns,
+				jen.Id(returnDeclaration.Name()).
+					Id(returnDeclaration.Type().String()),
+			)
 		}
 
 		body := make([]jen.Code, 0)
 		returnList := make([]jen.Code, 0, signature.Results().Len())
 
 		if len(returns) > 0 {
-			body = append(body, jen.Id("returnValues").Op(":=").Id("h").Dot("RunMethodWithReturnHooks").Call(paramNames...))
+			body = append(
+				body,
+				jen.Id("returnValues").
+					Op(":=").
+					Id("h").
+					Dot("RunMethodWithReturnHooks").
+					Call(paramNames...),
+			)
 		} else {
-			body = append(body, jen.Id("_").Op("=").Id("h").Dot("RunMethodWithReturnHooks").Call(paramNames...))
+			body = append(
+				body,
+				jen.Id("_").
+					Op("=").
+					Id("h").
+					Dot("RunMethodWithReturnHooks").
+					Call(paramNames...),
+			)
 		}
 
 		for i := 0; i < signature.Results().Len(); i++ {
@@ -127,15 +163,38 @@ func main() {
 			}
 			switch returnDeclaration.Type().Underlying().(type) {
 			case *types.Interface:
-				returnVar := jen.Var().Id(returnName).Id(returnDeclaration.Type().String())
+				returnVar := jen.Var().
+					Id(returnName).
+					Id(returnDeclaration.Type().String())
 				anyVarName := returnName + "Any"
-				anyVar := jen.Id(anyVarName).Op(":=").Id("returnValues").Index(jen.Lit(i)).Dot("Interface").Call()
-				typeCheck := jen.If(jen.Id(anyVarName)).Op("!=").Nil().Block(
-					jen.Id(returnName).Op("=").Id(returnName + "Any").Assert(jen.Id(returnDeclaration.Type().String())),
-				)
+				anyVar := jen.Id(anyVarName).
+					Op(":=").
+					Id("returnValues").
+					Index(jen.Lit(i)).
+					Dot("Interface").
+					Call()
+				typeCheck := jen.If(jen.Id(anyVarName)).
+					Op("!=").
+					Nil().
+					Block(
+						jen.Id(returnName).
+							Op("=").
+							Id(returnName + "Any").
+							Assert(
+								jen.Id(returnDeclaration.Type().String()),
+							),
+					)
 				body = append(body, returnVar, anyVar, typeCheck)
 			default:
-				returnVar := jen.Id(returnName).Op(":=").Id("returnValues").Index(jen.Lit(i)).Dot("Interface").Call().Assert(jen.Id(returnDeclaration.Type().String()))
+				returnVar := jen.Id(returnName).
+					Op(":=").
+					Id("returnValues").
+					Index(jen.Lit(i)).
+					Dot("Interface").
+					Call().
+					Assert(
+						jen.Id(returnDeclaration.Type().String()),
+					)
 				body = append(body, returnVar)
 			}
 
