@@ -146,7 +146,7 @@ func main() {
 			Block(body...)
 	}
 
-	outputPath := "generated.go"
+	outputPath := fmt.Sprintf("hooked_%s.go", sourceType)
 	if err := os.WriteFile(outputPath, []byte(f.GoString()), 0644); err != nil {
 		panic(err)
 	}
