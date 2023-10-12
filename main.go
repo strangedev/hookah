@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dave/jennifer/jen"
 	"go/types"
@@ -50,7 +51,7 @@ func main() {
 	goPackage := segments[len(segments)-1]
 	outputPath := fmt.Sprintf("hooked_%s.go", sourceType)
 
-	if err := os.Remove(outputPath); err != nil {
+	if err := os.Remove(outputPath); !errors.Is(err, os.ErrNotExist) && err != nil {
 		panic(err)
 	}
 
