@@ -44,16 +44,22 @@ func (h *Hookah[TImpl]) AddReturnHook(methodName string, hook ReturnHook) error 
 func (h *Hookah[TImpl]) RunMethodWithReturnHooks(methodName string, args ...any) ReturnValues {
 	var method reflect.Method
 	var ok bool
+	var isIndirect bool
 	method, ok = reflect.TypeOf(h.impl).MethodByName(methodName)
 	if !ok {
 		method, ok = reflect.TypeOf(&h.impl).MethodByName(methodName)
 		if !ok {
 			panic(ErrMethodNotFound)
 		}
+		isIndirect = true
 	}
 
 	inputs := make([]reflect.Value, len(args)+1)
-	inputs[0] = reflect.ValueOf(h.impl)
+	if isIndirect {
+		inputs[0] = reflect.ValueOf(&h.impl)
+	} else {
+		inputs[0] = reflect.ValueOf(h.impl)
+	}
 	for i, arg := range args {
 		inputs[i+1] = reflect.ValueOf(arg)
 	}
