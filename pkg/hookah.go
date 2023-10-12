@@ -26,14 +26,9 @@ var (
 )
 
 func (h *Hookah[TImpl]) AddReturnHook(methodName string, hook ReturnHook) error {
-	self := reflect.TypeOf(h.impl)
-	_, ok := self.MethodByName(methodName)
-	if !ok {
-		selfPtr := reflect.TypeOf(&h.impl)
-		_, ok := selfPtr.MethodByName(methodName)
-		if !ok {
-			return ErrMethodNotFound
-		}
+	_, _, err := getMethod(h.impl, methodName)
+	if err != nil {
+		return err
 	}
 
 	h.returnHooks[methodName] = hook
@@ -42,29 +37,12 @@ func (h *Hookah[TImpl]) AddReturnHook(methodName string, hook ReturnHook) error 
 }
 
 func (h *Hookah[TImpl]) RunMethodWithReturnHooks(methodName string, args ...any) ReturnValues {
-	var method reflect.Method
-	var ok bool
-	var isIndirect bool
-	method, ok = reflect.TypeOf(h.impl).MethodByName(methodName)
-	if !ok {
-		method, ok = reflect.TypeOf(&h.impl).MethodByName(methodName)
-		if !ok {
-			panic(ErrMethodNotFound)
-		}
-		isIndirect = true
+	method, isIndirect, err := getMethod(h.impl, methodName)
+	if err != nil {
+		panic(err)
 	}
 
-	inputs := make([]reflect.Value, len(args)+1)
-	if isIndirect {
-		inputs[0] = reflect.ValueOf(&h.impl)
-	} else {
-		inputs[0] = reflect.ValueOf(h.impl)
-	}
-	for i, arg := range args {
-		inputs[i+1] = reflect.ValueOf(arg)
-	}
-
-	originalReturnValues := method.Func.Call(inputs)
+	originalReturnValues := callMethod(h.impl, method, isIndirect, args)
 
 	if hook, ok := h.returnHooks[methodName]; ok {
 		return hook(originalReturnValues)

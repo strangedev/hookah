@@ -57,6 +57,14 @@ func main() {
 		jen.Op("*").Qual("github.com/strangedev/hookah/pkg", "Hookah").Index(jen.Id(sourceType)),
 	)
 
+	f.Func().Id("NewHooked" + sourceType).Params(
+		jen.Id("original").Id(sourceType),
+	).List(
+		jen.Id("Hooked" + sourceType),
+	).Block(
+		jen.Return(jen.Id(sourceType).Values(jen.Qual("github.com/strangedev/hookah/pkg", "NewHookah").Call(jen.Id("original")))),
+	)
+
 	methodSet := types.NewMethodSet(obj.Type())
 	ptrMethodSet := types.NewMethodSet(types.NewPointer(obj.Type()))
 	declaredMethods := make(map[string]*types.Selection)
