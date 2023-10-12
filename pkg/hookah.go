@@ -38,9 +38,14 @@ func (h *Hookah[TImpl]) AddReturnHook(methodName string, hook ReturnHook) error 
 }
 
 func (h *Hookah[TImpl]) RunMethodWithReturnHooks(methodName string, args ...any) ReturnValues {
-	method, ok := reflect.TypeOf(h.impl).MethodByName(methodName)
+	var method reflect.Method
+	var ok bool
+	method, ok = reflect.TypeOf(h.impl).MethodByName(methodName)
 	if !ok {
-		panic(ErrMethodNotFound)
+		method, ok = reflect.TypeOf(&h.impl).MethodByName(methodName)
+		if !ok {
+			panic(ErrMethodNotFound)
+		}
 	}
 
 	inputs := make([]reflect.Value, len(args)+1)
