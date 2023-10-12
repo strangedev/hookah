@@ -29,7 +29,11 @@ func (h *Hookah[TImpl]) AddReturnHook(methodName string, hook ReturnHook) error 
 	self := reflect.TypeOf(h.impl)
 	_, ok := self.MethodByName(methodName)
 	if !ok {
-		return ErrMethodNotFound
+		selfPtr := reflect.TypeOf(&h.impl)
+		_, ok := selfPtr.MethodByName(methodName)
+		if !ok {
+			return ErrMethodNotFound
+		}
 	}
 
 	h.returnHooks[methodName] = hook
