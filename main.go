@@ -62,7 +62,7 @@ func main() {
 	).List(
 		jen.Id("Hooked" + sourceType),
 	).Block(
-		jen.Return(jen.Id(sourceType).Values(jen.Qual("github.com/strangedev/hookah/pkg", "NewHookah").Call(jen.Id("original")))),
+		jen.Return(jen.Id("Hooked" + sourceType).Values(jen.Qual("github.com/strangedev/hookah/pkg", "NewHookah").Call(jen.Id("original")))),
 	)
 
 	methodSet := types.NewMethodSet(obj.Type())
