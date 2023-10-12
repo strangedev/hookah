@@ -1,4 +1,4 @@
-module github.com/strangedev/hookah/v1
+module github.com/strangedev/hookah
 
 go 1.21.0
 
