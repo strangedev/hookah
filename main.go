@@ -137,5 +137,8 @@ func main() {
 			Block(body...)
 	}
 
-	fmt.Printf("%#v", f)
+	outputPath := "generated.go"
+	if err := os.WriteFile(outputPath, []byte(f.GoString()), 0644); err != nil {
+		panic(err)
+	}
 }
